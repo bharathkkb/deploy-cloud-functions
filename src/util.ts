@@ -34,6 +34,15 @@ export async function zipDir(dirPath: string): Promise<string> {
   const output = fs.createWriteStream(outputPath);
   // Init archive
   const archive = Archiver.create('zip');
+  // log archive warnings
+  archive.on('warning', (err: any) => {
+    if (err.code === 'ENOENT') {
+      console.warn(err);
+    } else {
+      console.warn(err);
+      throw err;
+    }
+  });
   archive.pipe(output);
   // Add dir to root of archive
   archive.directory(dirPath, false);
