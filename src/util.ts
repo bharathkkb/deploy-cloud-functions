@@ -43,6 +43,11 @@ export async function zipDir(dirPath: string): Promise<string> {
       throw err;
     }
   });
+  // listen for all archive data to be written
+  output.on('close', function() {
+    console.log(archive.pointer() + ' total bytes');
+    console.log('archiver has been finalized and the output file descriptor has closed.');
+  });
   archive.pipe(output);
   // Add dir to root of archive
   archive.directory(dirPath, false);
