@@ -15,6 +15,8 @@
  */
 
 import * as core from '@actions/core';
+import * as path from 'path';
+import * as os from 'os';
 import { GaxiosResponse } from 'gaxios';
 import { CloudFunction } from './cloudFunction';
 import { uploadSource, zipDir, deleteZipFile } from './util';
@@ -196,7 +198,10 @@ export class CloudFunctionClient {
   async deploy(cf: CloudFunction): Promise<cloudfunctions_v1.Schema$Operation> {
     const authClient = await this.getAuthClient();
     const deployedFunctions = await this.listFunctions();
-    const zipPath = `./cfsrc-${Math.floor(Math.random() * 100000)}.zip`;
+    const zipPath = path.join(
+      os.tmpdir(),
+      `cfsrc-${Math.floor(Math.random() * 100000)}.zip`,
+    );
     await zipDir(cf.sourceDir, zipPath)
       .then(() => {
         core.info(`zip file ${zipPath} created successfully`);
