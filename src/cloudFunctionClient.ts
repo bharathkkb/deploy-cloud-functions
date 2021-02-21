@@ -197,13 +197,25 @@ export class CloudFunctionClient {
     const authClient = await this.getAuthClient();
     const deployedFunctions = await this.listFunctions();
     const zipPath = `./cfsrc-${Math.floor(Math.random() * 100000)}.zip`;
-    await zipDir(cf.sourceDir, zipPath);
+    await zipDir(cf.sourceDir, zipPath)
+      .then(() => {
+        core.info(`zip file ${zipPath} created successfully`);
+      })
+      .catch((err) => {
+        throw new Error(`Zip file ${zipPath} creation failed: ${err}`);
+      });
     const uploadUrl = await this.getUploadUrl();
     if (!uploadUrl.uploadUrl) {
       throw new Error('Unable to generate signed Url');
     }
     // Upload source code
-    await uploadSource(uploadUrl.uploadUrl, zipPath);
+    await uploadSource(uploadUrl.uploadUrl, zipPath)
+      .then(() => {
+        core.info(`zip file ${zipPath} uploaded successfully`);
+      })
+      .catch((err) => {
+        throw new Error(`Zip file upload failed: ${err}`);
+      });
     // Delete temp zip file after upload
     await deleteZipFile(zipPath);
     cf.setSourceUrl(uploadUrl.uploadUrl);
