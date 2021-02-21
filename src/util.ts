@@ -24,36 +24,40 @@ import * as Archiver from 'archiver';
  * @param dirPath Directory to zip.
  * @returns filepath of the created zip file.
  */
-export async function zipDir(dirPath: string): Promise<string> {
+export async function zipDir(dirPath: string, outputPath: string) {
   // Check dirpath
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Unable to find ${dirPath}`);
   }
-  // Create output file stream
-  const outputPath = `./cfsrc-${Math.floor(Math.random() * 100000)}.zip`;
-  const output = fs.createWriteStream(outputPath);
-  // Init archive
-  const archive = Archiver.create('zip');
-  // log archive warnings
-  archive.on('warning', (err: any) => {
-    if (err.code === 'ENOENT') {
-      console.warn(err);
-    } else {
-      console.warn(err);
-      throw err;
-    }
+  return new Promise((resolve, reject) => {
+    // Create output file stream
+    const output = fs.createWriteStream(outputPath);
+    output.on('finish', resolve);
+    // Init archive
+    const archive = Archiver.create('zip');
+    // log archive warnings
+    archive.on('warning', (err: any) => {
+      if (err.code === 'ENOENT') {
+        console.warn(err);
+        reject();
+      } else {
+        console.warn(err);
+        reject();
+      }
+    });
+    // listen for all archive data to be written
+    output.on('close', function () {
+      console.log(archive.pointer() + ' total bytes');
+      console.log(
+        'archiver has been finalized and the output file descriptor has closed.',
+      );
+    });
+    archive.pipe(output);
+    // Add dir to root of archive
+    archive.directory(dirPath, false);
+    // Finish writing files
+    archive.finalize();
   });
-  // listen for all archive data to be written
-  output.on('close', function() {
-    console.log(archive.pointer() + ' total bytes');
-    console.log('archiver has been finalized and the output file descriptor has closed.');
-  });
-  archive.pipe(output);
-  // Add dir to root of archive
-  archive.directory(dirPath, false);
-  // Finish writing files
-  archive.finalize();
-  return outputPath;
 }
 
 /**

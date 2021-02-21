@@ -196,7 +196,8 @@ export class CloudFunctionClient {
   async deploy(cf: CloudFunction): Promise<cloudfunctions_v1.Schema$Operation> {
     const authClient = await this.getAuthClient();
     const deployedFunctions = await this.listFunctions();
-    const zipPath = await zipDir(cf.sourceDir);
+    const zipPath = `./cfsrc-${Math.floor(Math.random() * 100000)}.zip`;
+    await zipDir(cf.sourceDir, zipPath);
     const uploadUrl = await this.getUploadUrl();
     if (!uploadUrl.uploadUrl) {
       throw new Error('Unable to generate signed Url');
