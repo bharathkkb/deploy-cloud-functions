@@ -60,6 +60,7 @@ export async function zipDir(
     archive.pipe(output);
     // Add dir to root of archive
     getFiles(dirPath).forEach((filepath) => {
+      core.info(`adding file ${filepath}`)
       archive.glob(filepath, {
         cwd: dirPath,
         noglobstar: true,
