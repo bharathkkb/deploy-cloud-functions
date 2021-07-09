@@ -58,14 +58,18 @@ export async function zipDir(
       core.info(`function source zipfile created: ${archive.pointer()} bytes`);
     });
     archive.pipe(output);
+    const ignoreF = ignore().add(getGcloudIgnores(dirPath));
     // Add dir to root of archive
-    getFiles(dirPath).forEach((filepath) => {
-      core.info(`adding file ${filepath}`)
-      archive.glob(filepath, {
-        cwd: dirPath,
-        noglobstar: true,
-      });
-    });
+    archive.directory(dirPath, false, (file) =>
+      !ignoreF.ignores(file.name) ? file : false,
+    );
+    // getFiles(dirPath).forEach((filepath) => {
+    //   core.info(`adding file ${filepath}`)
+    //   archive.glob(filepath, {
+    //     cwd: dirPath,
+    //     noglobstar: true,
+    //   });
+    // });
     // Finish writing files
     archive.finalize();
   });
@@ -79,6 +83,10 @@ export function getFiles(dir: string): string[] {
   const files = fg.sync(['**'], { cwd: dir });
   // return list of files that are not ignored
   return ignore().add(getGcloudIgnores(dir)).filter(files);
+}
+
+export function getIgnore(dir: string): any {
+  return ignore().add(getGcloudIgnores(dir));
 }
 
 /**
